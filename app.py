@@ -148,18 +148,34 @@ def add_pingpong(idx, ld, ping):
   ppm.add_pingpong(PingPong(ping, "dang!!!!!!!"))
   return "", ppm.build_uis(), str(res)
 
-def set_chatbot(btn, ld):
+def channel_num(btn_title):
   choice = 0
-  if btn == "1st":
+    
+  if btn == "1st Channel":
     choice = 0
-  elif btn == "2nd":
+  elif btn == "2nd Channel":
     choice = 1
-  elif btn == "3rd":
+  elif btn == "3rd Channel":
     choice = 2
-  elif btn == "4th":
+  elif btn == "4th Channel":
     choice = 3
-  elif btn == "5th":
+  elif btn == "5th Channel":
     choice = 4
+  elif btn == "6th Channel":
+    choice = 5
+  elif btn == "7th Channel":
+    choice = 6
+  elif btn == "8th Channel":
+    choice = 7
+  elif btn == "9th Channel":
+    choice = 8
+  elif btn == "10th Channel":
+    choice = 9
+
+  return choice
+
+def set_chatbot(btn, ld):
+  choice = channel_num(btn)
 
   res = [
       GradioAlpacaChatPPManager.from_json(json.dumps(ppm_str))
