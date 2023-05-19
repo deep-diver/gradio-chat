@@ -14,6 +14,15 @@ STYLE = """
 .custom-btn:hover {
     background: rgb(243 244 246) !important;
 }
+
+.custom-btn-highlight {
+    border: none !important;
+    background: rgb(243 244 246) !important;
+    box-shadow: none !important;
+    display: block !important;
+    text-align: left !important;
+}
+
 #prompt-txt > label > span {
     display: none !important;
 }
@@ -133,10 +142,28 @@ function() {
   if(history.length == 0) {
     document.querySelector("#initial-popup").classList.remove('hide');
   }
-
+  
   return [history, local_data];
 }
 """
+
+update_left_btns_state = """
+(v)=>{
+  document.querySelector('.custom-btn-highlight').classList.add('custom-btn');
+  document.querySelector('.custom-btn-highlight').classList.remove('custom-btn-highlight');
+
+  const elements = document.querySelectorAll(".custom-btn");
+
+  for(var i=0; i < elements.length; i++) {
+    const element = elements[i];
+    if(element.textContent == v) {
+      console.log(v);
+      element.classList.add('custom-btn-highlight');
+      element.classList.remove('custom-btn');
+      break;
+    }
+  }
+}""" 
 
 def add_pingpong(idx, ld, ping):
   res = [
@@ -151,25 +178,25 @@ def add_pingpong(idx, ld, ping):
 def channel_num(btn_title):
   choice = 0
     
-  if btn == "1st Channel":
+  if btn_title == "1st Channel":
     choice = 0
-  elif btn == "2nd Channel":
+  elif btn_title == "2nd Channel":
     choice = 1
-  elif btn == "3rd Channel":
+  elif btn_title == "3rd Channel":
     choice = 2
-  elif btn == "4th Channel":
+  elif btn_title == "4th Channel":
     choice = 3
-  elif btn == "5th Channel":
+  elif btn_title == "5th Channel":
     choice = 4
-  elif btn == "6th Channel":
+  elif btn_title == "6th Channel":
     choice = 5
-  elif btn == "7th Channel":
+  elif btn_title == "7th Channel":
     choice = 6
-  elif btn == "8th Channel":
+  elif btn_title == "8th Channel":
     choice = 7
-  elif btn == "9th Channel":
+  elif btn_title == "9th Channel":
     choice = 8
-  elif btn == "10th Channel":
+  elif btn_title == "10th Channel":
     choice = 9
 
   return choice
@@ -182,7 +209,11 @@ def set_chatbot(btn, ld):
       for ppm_str in ld
   ]
   empty = len(res[choice].pingpongs) == 0
-  return res[choice].build_uis(), choice, gr.update(visible=empty)
+  return (
+      res[choice].build_uis(), 
+      choice,
+      gr.update(visible=empty)
+  )
 
 def set_example(btn):
   return btn, gr.update(visible=False)
@@ -201,7 +232,7 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
         
       with gr.Column(elem_id="left-pane"):
         with gr.Accordion("Histories", elem_id="chat-history-accordion"):
-          first = gr.Button("1st Channel", elem_classes=["custom-btn"])
+          first = gr.Button("1st Channel", elem_classes=["custom-btn-highlight"])
           second = gr.Button("2nd Channel", elem_classes=["custom-btn"])
           third = gr.Button("3rd Channel", elem_classes=["custom-btn"])
           fourth = gr.Button("4th Channel", elem_classes=["custom-btn"])
@@ -243,7 +274,10 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
     btn.click(
       set_chatbot,
       [btn, local_data],
-      [chatbot, idx, example_block]
+      [chatbot, idx, example_block]        
+    ).then(
+      None, btn, None, 
+      _js=update_left_btns_state        
     )
   
   ex_btns = [ex_btn1, ex_btn2, ex_btn3]
@@ -274,4 +308,4 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
       _js=get_local_storage,
   )  
 
-block.queue().launch(share=False)
+block.queue().launch(debug=True)
