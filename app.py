@@ -40,7 +40,7 @@ STYLE = """
     max-height: 780px;
 }
 #chatbot + div {
-  border-radius: 35px;
+  border-radius: 35px !important;
   width: 80% !important;
   margin: auto !important;  
 }
@@ -106,11 +106,41 @@ STYLE = """
 }
 
 .example-btn:hover {
-    box-shadow: 0.3px 0.3px 0.3px gray !important
+    box-shadow: 0.3px 0.3px 0.3px gray !important;
 }
 
 #example-title {
   margin-bottom: 15px;
+}
+
+#aux-btns-popup {
+    z-index: 200;
+    position: absolute !important;
+    bottom: 75px !important;
+    right: 15px !important;
+}
+
+#aux-btns-popup > div {
+    flex-wrap: nowrap;
+    width: auto;
+    margin: auto;  
+}
+
+.aux-btn {
+    height: 30px !important;
+    flex-wrap: initial !important;
+    flex: none !important;
+    min-width: min(100px,100%) !important;
+    font-weight: unset !important;
+    font-size: 10pt !important;
+
+    background: linear-gradient(to bottom right, #f7faff, #ffffff) !important;
+    box-shadow: none !important;
+    border-radius: 20px !important;    
+}
+
+.aux-btn:hover {
+    box-shadow: 0.3px 0.3px 0.3px gray !important;
 }
 """
 
@@ -165,6 +195,27 @@ update_left_btns_state = """
   }
 }""" 
 
+channels = [
+    "1st Channel",
+    "2nd Channel",
+    "3rd Channel",
+    "4th Channel",
+    "5th Channel",
+    "6th Channel",
+    "7th Channel",
+    "8th Channel",
+    "9th Channel",
+    "10th Channel"
+]
+channel_btns = []
+
+examples = [
+    "hello world", 
+    "what's up?", 
+    "this is GradioChat"
+]
+ex_btns = []
+
 def add_pingpong(idx, ld, ping):
   res = [
       GradioAlpacaChatPPManager.from_json(json.dumps(ppm))
@@ -177,27 +228,10 @@ def add_pingpong(idx, ld, ping):
 
 def channel_num(btn_title):
   choice = 0
-    
-  if btn_title == "1st Channel":
-    choice = 0
-  elif btn_title == "2nd Channel":
-    choice = 1
-  elif btn_title == "3rd Channel":
-    choice = 2
-  elif btn_title == "4th Channel":
-    choice = 3
-  elif btn_title == "5th Channel":
-    choice = 4
-  elif btn_title == "6th Channel":
-    choice = 5
-  elif btn_title == "7th Channel":
-    choice = 6
-  elif btn_title == "8th Channel":
-    choice = 7
-  elif btn_title == "9th Channel":
-    choice = 8
-  elif btn_title == "10th Channel":
-    choice = 9
+
+  for idx, channel in enumerate(channels):
+    if channel == btn_title:
+      choice = idx
 
   return choice
 
@@ -219,7 +253,6 @@ def set_example(btn):
   return btn, gr.update(visible=False)
 
 def set_popup_visibility(ld, example_block):
-  print(ld)
   return example_block
 
 with gr.Blocks(css=STYLE, elem_id='container-col') as block:
@@ -232,17 +265,11 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
         
       with gr.Column(elem_id="left-pane"):
         with gr.Accordion("Histories", elem_id="chat-history-accordion"):
-          first = gr.Button("1st Channel", elem_classes=["custom-btn-highlight"])
-          second = gr.Button("2nd Channel", elem_classes=["custom-btn"])
-          third = gr.Button("3rd Channel", elem_classes=["custom-btn"])
-          fourth = gr.Button("4th Channel", elem_classes=["custom-btn"])
-          fifth = gr.Button("5th Channel", elem_classes=["custom-btn"])
-          sixth = gr.Button("6th Channel", elem_classes=["custom-btn"])
-          seventh = gr.Button("7th Channel", elem_classes=["custom-btn"])
-          eighth = gr.Button("8th Channel", elem_classes=["custom-btn"])
-          nineth = gr.Button("9th Channel", elem_classes=["custom-btn"])
-          tenth = gr.Button("10th Channel", elem_classes=["custom-btn"])            
-          
+          channel_btns.append(gr.Button(channels[0], elem_classes=["custom-btn-highlight"]))
+
+          for channel in channels[1:]:
+            channel_btns.append(gr.Button(channel, elem_classes=["custom-btn"]))
+        
     with gr.Column(scale=8, elem_id="right-pane"):
       with gr.Column(elem_id="initial-popup", visible=False) as example_block:
         with gr.Row(scale=1):
@@ -255,10 +282,15 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
 
         with gr.Column(scale=1):
           gr.Markdown("Examples")
-          with gr.Row():
-            ex_btn1 = gr.Button("hello world", elem_classes=["example-btn"])
-            ex_btn2 = gr.Button("what's up?", elem_classes=["example-btn"])
-            ex_btn3 = gr.Button("this is GradioChat", elem_classes=["example-btn"])
+          with gr.Row() as text_block:
+            for example in examples:
+              ex_btns.append(gr.Button(example, elem_classes=["example-btn"]))
+
+      with gr.Column(elem_id="aux-btns-popup", visible=True):
+        with gr.Row():
+          stop = gr.Button("Stop", elem_classes=["aux-btn"])
+          regenerate = gr.Button("Regenerate", elem_classes=["aux-btn"])
+          clean = gr.Button("Clean", elem_classes=["aux-btn"])
 
       chatbot = gr.Chatbot(elem_id='chatbot')
       instruction_txtbox = gr.Textbox(
@@ -266,11 +298,7 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
           elem_id="prompt-txt"
       )
 
-  btns = [
-      first, second, third, fourth, fifth,
-      sixth, seventh, eighth, nineth, tenth
-  ]
-  for btn in btns:
+  for btn in channel_btns:
     btn.click(
       set_chatbot,
       [btn, local_data],
@@ -280,7 +308,6 @@ with gr.Blocks(css=STYLE, elem_id='container-col') as block:
       _js=update_left_btns_state        
     )
   
-  ex_btns = [ex_btn1, ex_btn2, ex_btn3]
   for btn in ex_btns:
     btn.click(
       set_example,
